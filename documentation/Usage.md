@@ -80,12 +80,12 @@ Note 2: If ZEsarUX is used with the --tbblue-fast-boot-mode loading of tap files
 - smallValuesMaximum: z80-debug format numbers (labels, constants) basically in 2 ways depedning on their size: 'small values' and 'big values'. Small values are typically consants like the maximum number of somethign you defined in your asm file.
 Big values are typically addresses. Here you can give the boundary between these 2 groups. bigValues usually also show their contents, i.e. the value at the address along the address itself. Usually 512 is a good boundary value.
 - tmpDir: A temporary directory used for files created during the debugging. At the moment this is only used to create the file for the disassembly if the PC reaches areas without any associated assembler listing.
-- "memoryViewer: The following proprties configure the memory viewer (used to show memory dumps).
+- "memoryViewer: The following properties configure the memory viewer (used to show memory dumps).
 	- addressColor: The first column shows the address. You can change the color here.
 	- asciiColor: You can change the color of the ascii field here.
 	- addressHoverFormat: Format for the address when hovering.
 	- valueHoverFormat: Format for the value when hovering.
-	- registerPointersToShow: You can select here which registers should appear in the memory view if their value is in range of the memory view. Additionally you select also the background color for the register. E.g. select [ 'HL', 'green', 'DE', 'blue', 'IX', 'red' ].
+	- registerPointerColors: An array with register/color pairs. All selected register will appear with the corresponden color in the memory view. Registers not chosen will not appear. E.g. ["HL", "darkgreen", "DE", "darkcyan", "BC", "darkgray" ]
 	- registersMemoryView: An array of register to show in the register memory view. This view is automatically opened at startup and shows the memory the registers point to. E.g. select [ 'HL', 'DE', 'IX' ].
 
 
@@ -194,6 +194,7 @@ z80-debug supports most of them but with some restrictions:
 - dot-notation: You have to hover over the last part of the dot notation to dissolve the complete label.
 - labels with out a trailing ":" are not supported.
 - temporary (number) labels: are not supported.
+- sjasmplus: labels inside macros are not supported.
 
 
 ### Usage
@@ -559,6 +560,20 @@ Stepping works slightly different to stepping in ZEsarUX.
 ## Known Issues
 
 - "ASSERT"s are set on startup but if for the same address an breakpoint already exists (e.g. from a previous session) it is not changed. If e.g. the ASSERT / breakpoint condition is changed it is not updated. Workaround: Remove all breakpoints manually before debugging the assembler program.
+
+- sjasmplus: Stepping through instructions separated by a colon:
+The following code
+~~~
+  inc hl : inc hl
+~~~
+might appear in the list file as
+~~~
+376+  814A
+376+  814A 23              inc hl
+377+  814B 23            inc hl
+~~~
+The first column is the line number. Please note that the line number of the 2 inc hl instructions is not the same. Therefore z80-debug might sometimes not display the right line during stepping.
+This seems to happen only seldomly.
 
 
 ## Notes

@@ -415,11 +415,10 @@ export class MemoryDumpView extends BaseView {
 		</table>
 		`;
 
-
 		// Create a string with the table itself.
-		var table = '';
-		var address = metaBlock.address;
-		var i = 0;
+		let table = '';
+		let address = metaBlock.address;
+		let i = 0;
 		const clmns = MEM_DUMP_BOUNDARY;
 		const data = metaBlock.data;
 		const len = data.length;
@@ -428,9 +427,18 @@ export class MemoryDumpView extends BaseView {
 		const asciiColor = Settings.launch.memoryViewer.asciiColor;
 		const bytesColor = Settings.launch.memoryViewer.bytesColor;
 
-		let ascii = '';
+		// Table column headers
+		let clmStart = address % clmns;	// Usually 0
+		table += '<tr>\n<th>Address:</th> <th></th>';
+		for(let k=0; k<clmns; k++) {
+			const c = clmStart+k;
+			table += '<th>' + c.toString(16).toUpperCase() + '</th>';
+		}
+		table += '\n</th>';
 
-		for(var k=0; k<len; k++) {
+		// Table contents
+		let ascii = '';
+		for(let k=0; k<len; k++) {
 			// Check start of line
 			if(i == 0) {
 				// start of a new line
@@ -488,7 +496,7 @@ export class MemoryDumpView extends BaseView {
 		}
 
 		// Add html body
-		var caption = metaBlock.title;
+		let caption = metaBlock.title;
 		if(caption)
 			caption = '<div align="left">' + caption + ':<br></div>\n';
 		else
@@ -514,8 +522,24 @@ export class MemoryDumpView extends BaseView {
 
 		%s
 
+		%s
+
 		</body>
 		</html>`;
+
+
+		// Add a legend to the table with registers and colors.
+		let legend = `
+		<br>
+		Legend:<br>
+		`;
+		const regColors = Settings.launch.memoryViewer.registerPointerColors;
+		const regColorsLen = regColors.length;
+		for(let k=0; k<regColorsLen; k+=2) {
+			const color = regColors[k+1];
+			//legend += '<span style="background-color: ' + color + ';borderRadius: 3px">' + regColors[k] + ' = ' + color + '</span><br>';
+			legend += '<span style="background-color: ' + color + ';border-radius: 3px">&nbsp; ' + regColors[k] + ' &nbsp;</span> &nbsp;&nbsp; ';
+		}
 
 		// Get register values
 		Emulator.getRegisters((regsString) => {
@@ -528,7 +552,7 @@ export class MemoryDumpView extends BaseView {
 			}
 
 			// Add html body
-			const html = util.format(format, tables);
+			const html = util.format(format, tables, legend);
 			this.vscodePanel.webview.html = html;
 
 			// Set colors for register pointers
